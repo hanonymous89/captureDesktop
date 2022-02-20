@@ -1,5 +1,6 @@
 ﻿#include <windows.h>
 #include <fstream>
+#include <vector>
 #include <string>
 namespace h {
     inline auto baseStyle(WNDPROC wndproc, LPCWSTR name) {
@@ -14,6 +15,22 @@ namespace h {
         winc.lpfnWndProc = wndproc;
         winc.lpszClassName = name;
         return RegisterClass(&winc);
+    }
+    template <class T>
+    inline auto find(std::string str, const std::string cut, T func) {
+        for (auto pos = str.find(cut); pos != std::string::npos; pos = str.find(cut)) {
+            func(str.substr(0, pos));
+            str = str.substr(pos + cut.size());
+        }
+        return str;
+    }
+    inline auto split(std::string str, const std::string cut) noexcept(false) {
+        std::vector<std::string> data;
+        str = find(str, cut, [&](std::string str) {
+            data.push_back(str);
+            });
+        if (!str.empty())data.push_back(str);
+        return data;
     }
     class File {
     private:
@@ -68,7 +85,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
         PostQuitMessage(0);
         break;
     case WM_CREATE:
-        SetTimer(hwnd, 4649, 100,(TIMERPROC)TimerProc);
+        SetTimer(hwnd, 4649, std::stoi("0" + h::File("speed").read().getContent().substr(0, 9)),(TIMERPROC)TimerProc);//file(setting).read
         break;
     case WM_WINDOWPOSCHANGED:
         SetWindowPos(hwnd,HWND_BOTTOM,0,0,0,0,SWP_NOSIZE|SWP_NOMOVE);
